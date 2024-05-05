@@ -1,5 +1,9 @@
 @echo off
 
+:: Update NuGet package cache
+echo Updating NuGet package cache...
+dotnet nuget locals all --clear
+
 :: Set the port for the application
 set PORT=7500
 
