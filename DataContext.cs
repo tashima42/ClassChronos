@@ -16,6 +16,7 @@ namespace UTFClassAPI;
 
 	}
 	
+	
 	public class Class
 	{
 		[Key]
@@ -24,9 +25,12 @@ namespace UTFClassAPI;
 		public string? Code { get; set; }
 		public string? Period { get; set; }
 		
-		[ForeignKey("Teacher")]
+		public int TeacherId { get; set; }
+		[ForeignKey("TeacherId")]
 		public Teacher Teacher { get; set; }
-		[ForeignKey("Classroom")]
+		
+		public int ClassroomId { get; set; }
+		[ForeignKey("ClassroomId")]
 		public Classroom Classroom { get; set; }
 	}
 	
@@ -44,7 +48,8 @@ namespace UTFClassAPI;
 		public int Id { get; set; }
 		public string? Name { get; set; }
 		
-		[ForeignKey("Department")]
+		public int DepartmentId { get; set; }
+		[ForeignKey("DepartmentId")]
 		public Department Department { get; set; }
 		
 	}
@@ -61,26 +66,31 @@ namespace UTFClassAPI;
 		[Key]
 		public int Id { get; set; }
 		public string? DateTime { get; set; }
-		
-		[ForeignKey("Login")]
-		public Login User { get; set; }
-		
-		[ForeignKey("Teacher")]
-		public Teacher Teacher { get; set; }
-		
-		[ForeignKey("Class")]
-		public Class Class { get; set; }
-				
 		public string? PeriodOld { get; set; }
 		public string? PeriodNew { get; set; }
 		
-		[ForeignKey("Classroom")]
+		public int LoginId { get; set; }
+		[ForeignKey("LoginId")]
+		public Login Login { get; set; }
+		
+		public int TeacherId { get; set; }
+		[ForeignKey("TeacherId")]
+		public Teacher Teacher { get; set; }
+		
+		public int ClassId { get; set; }
+		[ForeignKey("ClassId")]
+		public Class Class { get; set; }
+				
+		public int ClassroomOldId { get; set; }
+		[ForeignKey("ClassroomOldId")]
 		public Classroom ClassroomOld { get; set; }
 		
-		[ForeignKey("Classroom")]
+		public int ClassroomNewId { get; set; }
+		[ForeignKey("ClassroomNewId")]
 		public Classroom ClassroomNew { get; set; }
 
 	}
+	
 	
     public class DataContext : DbContext
     {
@@ -90,14 +100,14 @@ namespace UTFClassAPI;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            // Configurations with foreign keys here
+            // Extra configurations here if necessary
         }
 
         // Add DbSet properties for all classes representing database entities
-        public DbSet<Login>? Logins { get; set; }
-        public DbSet<Class>? Classes { get; set; }
-        public DbSet<Classroom>? Classrooms { get; set; }
-        public DbSet<Department>? Departments { get; set; }
-        public DbSet<Teacher>? Teachers { get; set; }
-        public DbSet<Log>? Logs { get; set; }
+        public DbSet<Login>? Login { get; set; }
+        public DbSet<Class>? Class { get; set; }
+        public DbSet<Classroom>? Classroom { get; set; }
+        public DbSet<Department>? Department { get; set; }
+        public DbSet<Teacher>? Teacher { get; set; }
+        public DbSet<Log>? Log { get; set; }
     }

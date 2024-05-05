@@ -11,9 +11,9 @@ set PORT=7500
 set ASPNETCORE_ENVIRONMENT=Development
 
 :: Check if .NET 6 SDK is installed
-dotnet --list-sdks | findstr "6\." > nul
+dotnet --list-sdks | findstr "8\." > nul
 if errorlevel 1 (
-    echo ERROR: .NET 6 SDK is not installed. Please install it and try again.
+    echo ERROR: .NET 8 SDK is not installed. Please install it and try again.
     exit /b 1
 )
 

@@ -27,7 +27,7 @@ namespace UTFClassAPI.Controllers
         {
             try
             {
-                var classrooms = await _context.Classrooms.ToListAsync();
+                var classrooms = await _context.Classroom.ToListAsync();
                 return Ok(classrooms);
             }
             catch (Exception ex)

@@ -27,7 +27,7 @@ namespace UTFClassAPI.Controllers
         {
             try
             {
-                var teachers = await _context.Teachers.ToListAsync();
+                var teachers = await _context.Teacher.Include(t => t.Department).ToListAsync();
                 return Ok(teachers);
             }
             catch (Exception ex)
