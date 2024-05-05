@@ -56,6 +56,32 @@ namespace UTFClassAPI;
 		public string? Name { get; set; }
 	}
 	
+	public class Log
+	{
+		[Key]
+		public int Id { get; set; }
+		public string? DateTime { get; set; }
+		
+		[ForeignKey("Login")]
+		public Login User { get; set; }
+		
+		[ForeignKey("Teacher")]
+		public Teacher Teacher { get; set; }
+		
+		[ForeignKey("Class")]
+		public Class Class { get; set; }
+				
+		public string? PeriodOld { get; set; }
+		public string? PeriodNew { get; set; }
+		
+		[ForeignKey("Classroom")]
+		public Classroom ClassroomOld { get; set; }
+		
+		[ForeignKey("Classroom")]
+		public Classroom ClassroomNew { get; set; }
+
+	}
+	
     public class DataContext : DbContext
     {
         public DataContext(DbContextOptions<DataContext> options) : base(options)
@@ -73,4 +99,5 @@ namespace UTFClassAPI;
         public DbSet<Classroom>? Classrooms { get; set; }
         public DbSet<Department>? Departments { get; set; }
         public DbSet<Teacher>? Teachers { get; set; }
+        public DbSet<Log>? Logs { get; set; }
     }
