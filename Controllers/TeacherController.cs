@@ -22,12 +22,43 @@ namespace UTFClassAPI.Controllers
             _context = context;
         }
 
+		/// <summary>
+        /// Retrieves all teachers list.
+        /// </summary>
         [HttpGet(Name = "GetTeachers")]
         public async Task<ActionResult<IEnumerable<Teacher>>> Get()
         {
             try
             {
                 var teachers = await _context.Teacher.Include(t => t.Department).ToListAsync();
+                
+				if (teachers.Count == 0)
+				{
+					return NoContent();
+				}
+				
+                return Ok(teachers);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to retrieve teachers from the database.");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+        
+        /// <summary>
+        /// Retrieves teachers filtered by department ID.
+        /// </summary>
+        /// <param name="departmentId">The ID of the department to filter by.</param>
+        [HttpGet("FilterByDepartment/{departmentId}", Name = "GetTeachersByDepartment")]
+        public async Task<ActionResult<IEnumerable<Teacher>>> GetTeachersByDepartment(int departmentId)
+        {
+            try
+            {
+                var teachers = await _context.Teacher.Include(t => t.Department)
+                                                     .Where(t => t.DepartmentId == departmentId)
+                                                     .ToListAsync();
+
                 return Ok(teachers);
             }
             catch (Exception ex)

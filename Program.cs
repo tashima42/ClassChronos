@@ -30,7 +30,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(c =>
     {
         c.RoutePrefix = string.Empty;
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "UTF Class API");
+        c.SwaggerEndpoint("/swagger/v2/swagger.json", "UTF Class API");
     });
 }
 

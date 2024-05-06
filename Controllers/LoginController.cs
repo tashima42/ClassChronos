@@ -36,5 +36,27 @@ namespace UTFClassAPI.Controllers
                 return StatusCode(500, "Internal server error");
             }
         }
+        
+        /// <summary>
+        /// Authenticates a user based on username and password.
+        /// </summary>
+        /// <param name="username">The username of the user.</param>
+        /// <param name="password">The password of the user.</param>
+        /// <returns>1 for successful login, 0 for unsuccessful login.</returns>
+        
+        [HttpPost("Authenticate")]
+        public async Task<int> Authenticate(string username, string password)
+        {
+            try
+            {
+                var user = await _context.Login.FirstOrDefaultAsync(u => u.User == username && u.Password == password);
+                return user != null ? 1 : 0;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to authenticate user.");
+                return 0;
+            }
+        }
     }
 }

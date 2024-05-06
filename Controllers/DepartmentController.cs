@@ -22,12 +22,23 @@ namespace UTFClassAPI.Controllers
             _context = context;
         }
 
-        [HttpGet(Name = "GetDepartments")]
+        /// <summary>
+		/// Retrieves all departments from the database.
+		/// </summary>
+		/// <returns>Returns departments from the database.</returns>
+		[HttpGet(Name = "GetDepartments")]
+		[ProducesResponseType(typeof(IEnumerable<Department>), 200)]
         public async Task<ActionResult<IEnumerable<Department>>> Get()
         {
             try
             {
                 var departments = await _context.Department.ToListAsync();
+                
+				if (departments.Count == 0)
+				{
+					return NoContent();
+				}
+				
                 return Ok(departments);
             }
             catch (Exception ex)
