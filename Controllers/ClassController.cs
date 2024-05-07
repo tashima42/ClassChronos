@@ -110,5 +110,51 @@ namespace UTFClassAPI.Controllers
                 return StatusCode(500, "Internal server error");
             }
         }
+        
+        /// <summary>
+        /// Updates the classroom for a class record based on the provided parameters.
+        /// </summary>
+        /// <param name="classId">The ID of the class record to update.</param>
+        /// <param name="classroomId">The ID of the new classroom to assign to the class.</param>
+        /// <returns>
+        /// Returns a list of classes that have conflicts if any, or a success message if the update is successful.
+        /// </returns>
+        [HttpPut("UpdateClassroom/{classId}/Classroom/{classroomID}")]
+        [ProducesResponseType(typeof(IEnumerable<Class>), 200)]
+        [ProducesResponseType(404)]
+        public async Task<ActionResult<IEnumerable<Class>>> UpdateClassroom(int classId, int classroomId)
+        {
+            try
+            {
+                
+                var classToUpdate = await _context.Class.Include(c => c.Classroom).FirstOrDefaultAsync(c => c.Id == classId);
+
+                if (classToUpdate == null)
+                {
+                    return NotFound();
+                }
+
+                
+                var conflicts = await _context.Class
+                    .Where(c => c.ClassroomId == classroomId && c.Period.Split(',').Intersect(classToUpdate.Period.Split(',')).Any())
+                    .ToListAsync();
+
+                if (conflicts.Any())
+                {
+                    return Ok(conflicts);
+                }
+
+                
+                classToUpdate.ClassroomId = classroomId;
+                await _context.SaveChangesAsync();
+
+                return Ok("Classroom updated successfully.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Failed to update classroom for class with ID: {classId}");
+                return StatusCode(500, "Internal server error");
+            }
+        }
     }
 }
