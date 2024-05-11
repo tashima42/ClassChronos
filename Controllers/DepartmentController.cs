@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
@@ -27,6 +28,7 @@ namespace UTFClassAPI.Controllers
 		/// </summary>
 		/// <returns>Returns departments from the database.</returns>
 		[HttpGet(Name = "GetDepartments")]
+		[Authorize]
 		[ProducesResponseType(typeof(IEnumerable<Department>), 200)]
         public async Task<ActionResult<IEnumerable<Department>>> Get()
         {

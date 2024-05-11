@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
@@ -26,6 +27,7 @@ namespace UTFClassAPI.Controllers
         /// Retrieves all teachers list.
         /// </summary>
         [HttpGet(Name = "GetTeachers")]
+        [Authorize]
         public async Task<ActionResult<IEnumerable<Teacher>>> Get()
         {
             try
@@ -51,6 +53,7 @@ namespace UTFClassAPI.Controllers
         /// </summary>
         /// <param name="departmentId">The ID of the department to filter by.</param>
         [HttpGet("FilterByDepartment/{departmentId}", Name = "GetTeachersByDepartment")]
+        [Authorize]
         public async Task<ActionResult<IEnumerable<Teacher>>> GetTeachersByDepartment(int departmentId)
         {
             try

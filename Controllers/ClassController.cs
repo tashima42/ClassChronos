@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
@@ -27,6 +28,7 @@ namespace UTFClassAPI.Controllers
 		/// </summary>
 		/// <returns>Returns all classes from the database.</returns>
         [HttpGet(Name = "GetClasses")]
+        [Authorize]
         public async Task<ActionResult<IEnumerable<Class>>> Get()
         {
             try
@@ -53,6 +55,7 @@ namespace UTFClassAPI.Controllers
         /// <param name="teacherId">The ID of the teacher to filter classes by.</param>
         /// <returns>Returns classes filtered by the specified teacher ID.</returns>
         [HttpGet("FilterByTeacherId/{teacherId}")]
+        [Authorize]
         [ProducesResponseType(typeof(IEnumerable<Class>), 200)]
         public async Task<ActionResult<IEnumerable<Class>>> FilterByTeacherId(int teacherId)
         {
@@ -85,6 +88,7 @@ namespace UTFClassAPI.Controllers
         /// <param name="classroomId">The ID of the classroom to filter classes by.</param>
         /// <returns>Returns classes filtered by the specified classroom ID.</returns>
         [HttpGet("FilterByClassroomId/{classroomId}")]
+        [Authorize]
         [ProducesResponseType(typeof(IEnumerable<Class>), 200)]
         public async Task<ActionResult<IEnumerable<Class>>> FilterByClassroomId(int classroomId)
         {
@@ -120,6 +124,7 @@ namespace UTFClassAPI.Controllers
         /// Returns a list of classes that have conflicts if any, or a success message if the update is successful.
         /// </returns>
         [HttpPut("UpdateClassroom/{classId}/Classroom/{classroomID}")]
+        [Authorize]
         [ProducesResponseType(typeof(IEnumerable<Class>), 200)]
         [ProducesResponseType(404)]
         public async Task<ActionResult<IEnumerable<Class>>> UpdateClassroom(int classId, int classroomId)
@@ -136,8 +141,9 @@ namespace UTFClassAPI.Controllers
 
                 
                 var conflicts = await _context.Class
-                    .Where(c => c.ClassroomId == classroomId && c.Period.Split(',').Intersect(classToUpdate.Period.Split(',')).Any())
-                    .ToListAsync();
+								.Where(c => c.ClassroomId == classroomId && c.Period.Split(new char[] { ',' }).Intersect(classToUpdate.Period.Split(new char[] { ',' })).Any())
+								.ToListAsync();
+
 
                 if (conflicts.Any())
                 {
