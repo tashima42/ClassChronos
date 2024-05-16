@@ -21,14 +21,22 @@ namespace UTFClassAPI.Controllers
         private readonly ILogger<LoginController> _logger;
         private readonly DataContext _context;
         private readonly Crypto _crypto;
+        
+        private const int maxAttempts = 3;
+		private const int CooldownSeconds = 60;
+
 
         public LoginController(ILogger<LoginController> logger, DataContext context)
         {
             _logger = logger;
             _context = context;
             _crypto = new Crypto();
+
         }
 
+        /// <summary>
+        /// Retrieves all login entries from the database. Only accessible to users with the 'Admin' role.
+        /// </summary>
         [HttpGet("GetLogins")]
         [Authorize(Roles = "Admin")]
         public async Task<ActionResult<IEnumerable<Login>>> Get()
@@ -51,75 +59,86 @@ namespace UTFClassAPI.Controllers
         /// <param name="username">The username of the user.</param>
         /// <param name="password">The password of the user.</param>
         /// <returns>JWT token for successful login, or Unauthorized for unsuccessful login.</returns>
-        [HttpPost("Authenticate")]
-        public async Task<ActionResult<string>> Authenticate(string username, string password)
+    [HttpPost("Authenticate")]
+    public async Task<ActionResult<string>> Authenticate(string username, string password)
+    {
+        try
+        {
+            // Check if the user exists and the password is correct
+            var user = await _context.Login.FirstOrDefaultAsync(u => u.User == username && u.Password == password);
+
+            if (user != null)
+            {
+                // User is authenticated, generate JWT token
+                var token = GenerateJwtToken(user);
+                return Ok(token);
+            }
+            else
+            {
+                // Delay to prevent basic attacks
+                await Task.Delay(1000);
+
+                // Check if the user has exceeded the maximum number of attempts
+                if (_context.Login.Count(u => u.User == username) >= maxAttempts)
+                {
+                    // Block further login attempts for cooldown period
+                    await Task.Delay(CooldownSeconds * 1000);
+                }
+
+                return Unauthorized("Invalid username or password.");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to authenticate user.");
+            return StatusCode(500, "Internal server error");
+        }
+    }
+
+        /// <summary>
+        /// Creates a new login entry in the database.
+        /// </summary>
+        /// <param name="login">The login object containing user details.</param>
+        /// <returns>1 if the login is created successfully, or Unauthorized if the user is not authorized.</returns>
+        [HttpPost("CreateLogin")]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult<int>> CreateLogin(Login login)
         {
             try
             {
-                var user = await _context.Login.FirstOrDefaultAsync(u => u.User == username && u.Password == password);
-                if (user != null)
-                {
-                    // User is authenticated, generate JWT token
-                    var token = GenerateJwtToken(user);
-                    return Ok(token);
-                }
-                else
-                {
-                    // User authentication failed
-                    return Unauthorized();
-                }
+                _context.Login.Add(login);
+                await _context.SaveChangesAsync();
+                return Ok(1);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to authenticate user.");
+                _logger.LogError(ex, "Failed to create login.");
                 return StatusCode(500, "Internal server error");
             }
         }
 
-        /// <summary>
-		/// Creates a new login if the user is admin.
-		/// </summary>
-		/// <param name="login">The login object containing user details.</param>
-		/// <returns>1 if the login is created successfully, or Unauthorized if the user is not an admin.</returns>
-		[HttpPost("CreateLogin")]
-		[Authorize(Roles = "Admin")]
-		public async Task<ActionResult<int>> CreateLogin(Login login)
-		{
-			try
-			{
-				_context.Login.Add(login);
-				await _context.SaveChangesAsync();
-				return Ok(1);
-			}
-			catch (Exception ex)
-			{
-				_logger.LogError(ex, "Failed to create login.");
-				return StatusCode(500, "Internal server error");
-			}
-		}
-
         private string GenerateJwtToken(Login user)
-		{
-			var tokenHandler = new JwtSecurityTokenHandler();
-			var key = Encoding.ASCII.GetBytes(_crypto.GetSecretKeyAsString());
-    
-			// Include user ID as a claim
-			var claims = new List<Claim>
-			{
-				new Claim(ClaimTypes.Name, user.User),
-				new Claim(ClaimTypes.Role, user.IsAdmin == 1 ? "Admin" : "User"),
-				new Claim("UserId", user.Id.ToString())
-			};
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.ASCII.GetBytes(_crypto.GetSecretKeyAsString());
 
-			var tokenDescriptor = new SecurityTokenDescriptor
-			{
-				Subject = new ClaimsIdentity(claims),
-				Expires = DateTime.UtcNow.AddHours(1), // Token expires in 1 hour
-				SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
-			};
+            // Include user ID as a claim
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Name, user.User),
+                new Claim(ClaimTypes.Role, user.IsAdmin == 1 ? "Admin" : "User"),
+                new Claim("UserId", user.Id.ToString())
+            };
 
-			var token = tokenHandler.CreateToken(tokenDescriptor);
-			return tokenHandler.WriteToken(token);
-		}
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(claims),
+                Expires = DateTime.UtcNow.AddHours(1), // Token expires in 1 hour
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+            };
+
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            return tokenHandler.WriteToken(token);
+        }
     }
 }

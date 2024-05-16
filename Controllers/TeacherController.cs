@@ -70,5 +70,65 @@ namespace UTFClassAPI.Controllers
                 return StatusCode(500, "Internal server error");
             }
         }
+        
+        /// <summary>
+        /// Adds a new teacher to the database.
+        /// </summary>
+        /// <param name="teacher">The teacher object to add.</param>
+        /// <returns>Returns the added teacher.</returns>
+        [HttpPost("AddTeacher")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(typeof(Teacher), 201)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(500)]
+        public async Task<ActionResult<Teacher>> AddTeacher(Teacher teacher)
+        {
+            try
+            {
+                _context.Teacher.Add(teacher);
+                await _context.SaveChangesAsync();
+                return CreatedAtAction(nameof(Get), new { id = teacher.Id }, teacher);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to add teacher.");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        /// <summary>
+        /// Edits an existing teacher in the database.
+        /// </summary>
+        /// <param name="id">The ID of the teacher to edit.</param>
+        /// <param name="teacher">The updated teacher object.</param>
+        /// <returns>Returns the edited teacher.</returns>
+        [HttpPut("EditTeacher/{id}")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(typeof(Teacher), 200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(404)]
+        [ProducesResponseType(500)]
+        public async Task<ActionResult<Teacher>> EditTeacher(int id, Teacher teacher)
+        {
+            try
+            {
+                var existingTeacher = await _context.Teacher.FindAsync(id);
+                if (existingTeacher == null)
+                {
+                    return NotFound();
+                }
+
+                existingTeacher.Name = teacher.Name;
+
+                await _context.SaveChangesAsync();
+
+                return Ok(existingTeacher);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Failed to edit teacher with ID: {id}");
+                return StatusCode(500, "Internal server error");
+            }
+        }
     }
 }

@@ -23,23 +23,29 @@ namespace UTFClassAPI.Controllers
             _context = context;
         }
 
-		/// <summary>
-		/// Retrieves Classes from the database.
-		/// </summary>
-		/// <returns>Returns all classes from the database.</returns>
+        /// <summary>
+        /// Retrieves classes from the database, including their associated periods.
+        /// </summary>
+        /// <returns>Returns all classes with their associated periods.</returns>
         [HttpGet(Name = "GetClasses")]
         [Authorize]
+        [ProducesResponseType(typeof(IEnumerable<Class>), 200)]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(500)]
         public async Task<ActionResult<IEnumerable<Class>>> Get()
         {
             try
             {
-                var classes = await _context.Class.Include(c => c.Teacher).ThenInclude(t => t.Department).Include(c => c.Classroom).ToListAsync();
-				
-				if (classes.Count == 0)
-				{
-					return NoContent();
-				}
-								
+                var classes = await _context.Class
+                    .Include(c => c.Teacher)
+                        .ThenInclude(t => t.Department)
+                    .ToListAsync();
+
+                if (classes.Count == 0)
+                {
+                    return NoContent();
+                }
+
                 return Ok(classes);
             }
             catch (Exception ex)
@@ -48,7 +54,7 @@ namespace UTFClassAPI.Controllers
                 return StatusCode(500, "Internal server error");
             }
         }
-        
+
         /// <summary>
         /// Retrieves classes from the database filtered by teacher ID.
         /// </summary>
@@ -57,6 +63,8 @@ namespace UTFClassAPI.Controllers
         [HttpGet("FilterByTeacherId/{teacherId}")]
         [Authorize]
         [ProducesResponseType(typeof(IEnumerable<Class>), 200)]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(500)]
         public async Task<ActionResult<IEnumerable<Class>>> FilterByTeacherId(int teacherId)
         {
             try
@@ -64,8 +72,7 @@ namespace UTFClassAPI.Controllers
                 var classes = await _context.Class
                     .Where(c => c.TeacherId == teacherId)
                     .Include(c => c.Teacher)
-                    .ThenInclude(t => t.Department)
-                    .Include(c => c.Classroom)
+                        .ThenInclude(t => t.Department)
                     .ToListAsync();
 
                 if (classes.Count == 0)
@@ -83,22 +90,23 @@ namespace UTFClassAPI.Controllers
         }
 
         /// <summary>
-        /// Retrieves classes from the database filtered by classroom ID.
+        /// Retrieves classes from the database filtered by period contained in the period field.
         /// </summary>
-        /// <param name="classroomId">The ID of the classroom to filter classes by.</param>
-        /// <returns>Returns classes filtered by the specified classroom ID.</returns>
-        [HttpGet("FilterByClassroomId/{classroomId}")]
+        /// <param name="period">The period to filter classes by.</param>
+        /// <returns>Returns classes filtered by the specified period.</returns>
+        [HttpGet("FilterByPeriod/{period}")]
         [Authorize]
         [ProducesResponseType(typeof(IEnumerable<Class>), 200)]
-        public async Task<ActionResult<IEnumerable<Class>>> FilterByClassroomId(int classroomId)
+        [ProducesResponseType(204)]
+        [ProducesResponseType(500)]
+        public async Task<ActionResult<IEnumerable<Class>>> FilterByPeriod(string period)
         {
             try
             {
                 var classes = await _context.Class
-                    .Where(c => c.ClassroomId == classroomId)
+                    .Where(c => EF.Functions.Like(c.Period, $"%{period}%"))
                     .Include(c => c.Teacher)
-                    .ThenInclude(t => t.Department)
-                    .Include(c => c.Classroom)
+                        .ThenInclude(t => t.Department)
                     .ToListAsync();
 
                 if (classes.Count == 0)
@@ -110,55 +118,41 @@ namespace UTFClassAPI.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Failed to filter classes by classroom ID: {classroomId}");
+                _logger.LogError(ex, $"Failed to filter classes by period: {period}");
                 return StatusCode(500, "Internal server error");
             }
         }
-        
+
         /// <summary>
-        /// Updates the classroom for a class record based on the provided parameters.
+        /// Retrieves classes from the database filtered by classroom contained in the period field.
         /// </summary>
-        /// <param name="classId">The ID of the class record to update.</param>
-        /// <param name="classroomId">The ID of the new classroom to assign to the class.</param>
-        /// <returns>
-        /// Returns a list of classes that have conflicts if any, or a success message if the update is successful.
-        /// </returns>
-        [HttpPut("UpdateClassroom/{classId}/Classroom/{classroomID}")]
+        /// <param name="classroom">The classroom to filter classes by.</param>
+        /// <returns>Returns classes filtered by the specified classroom.</returns>
+        [HttpGet("FilterByClassroom/{classroom}")]
         [Authorize]
         [ProducesResponseType(typeof(IEnumerable<Class>), 200)]
-        [ProducesResponseType(404)]
-        public async Task<ActionResult<IEnumerable<Class>>> UpdateClassroom(int classId, int classroomId)
+        [ProducesResponseType(204)]
+        [ProducesResponseType(500)]
+        public async Task<ActionResult<IEnumerable<Class>>> FilterByClassroom(string classroom)
         {
             try
             {
-                
-                var classToUpdate = await _context.Class.Include(c => c.Classroom).FirstOrDefaultAsync(c => c.Id == classId);
+                var classes = await _context.Class
+                    .Where(c => EF.Functions.Like(c.Period, $"%({classroom})%"))
+                    .Include(c => c.Teacher)
+                        .ThenInclude(t => t.Department)
+                    .ToListAsync();
 
-                if (classToUpdate == null)
+                if (classes.Count == 0)
                 {
-                    return NotFound();
+                    return NoContent();
                 }
 
-                
-                var conflicts = await _context.Class
-								.Where(c => c.ClassroomId == classroomId && c.Period.Split(new char[] { ',' }).Intersect(classToUpdate.Period.Split(new char[] { ',' })).Any())
-								.ToListAsync();
-
-
-                if (conflicts.Any())
-                {
-                    return Ok(conflicts);
-                }
-
-                
-                classToUpdate.ClassroomId = classroomId;
-                await _context.SaveChangesAsync();
-
-                return Ok("Classroom updated successfully.");
+                return Ok(classes);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Failed to update classroom for class with ID: {classId}");
+                _logger.LogError(ex, $"Failed to filter classes by classroom: {classroom}");
                 return StatusCode(500, "Internal server error");
             }
         }

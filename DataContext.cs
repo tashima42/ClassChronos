@@ -23,15 +23,19 @@ namespace UTFClassAPI;
 		public int Id { get; set; }
 		public string? Name { get; set; }
 		public string? Code { get; set; }
-		public string? Period { get; set; }
+		public string? Period {get; set; }
 		
 		public int TeacherId { get; set; }
 		[ForeignKey("TeacherId")]
 		public Teacher Teacher { get; set; }
 		
-		public int ClassroomId { get; set; }
-		[ForeignKey("ClassroomId")]
-		public Classroom Classroom { get; set; }
+	}
+	
+	public class Time
+	{
+		[Key]
+		public int Id { get; set; }
+		public string? Name { get; set; }
 	}
 	
 	public class Classroom
@@ -81,14 +85,6 @@ namespace UTFClassAPI;
 		[ForeignKey("ClassId")]
 		public Class Class { get; set; }
 				
-		public int ClassroomOldId { get; set; }
-		[ForeignKey("ClassroomOldId")]
-		public Classroom ClassroomOld { get; set; }
-		
-		public int ClassroomNewId { get; set; }
-		[ForeignKey("ClassroomNewId")]
-		public Classroom ClassroomNew { get; set; }
-
 	}
 	
 	
@@ -106,6 +102,7 @@ namespace UTFClassAPI;
         // Add DbSet properties for all classes representing database entities
         public DbSet<Login>? Login { get; set; }
         public DbSet<Class>? Class { get; set; }
+        public DbSet<Time>? Time { get; set; }
         public DbSet<Classroom>? Classroom { get; set; }
         public DbSet<Department>? Department { get; set; }
         public DbSet<Teacher>? Teacher { get; set; }
