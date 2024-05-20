@@ -12,6 +12,8 @@ using System.Text;
 using System.Threading.Tasks;
 using UTFClassAPI;
 
+
+
 namespace UTFClassAPI.Controllers
 {
     [ApiController]
@@ -113,6 +115,74 @@ namespace UTFClassAPI.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to create login.");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+        
+        /// <summary>
+        /// Edits an existing login entry in the database.
+        /// </summary>
+        /// <param name="id">The ID of the login to edit.</param>
+        /// <param name="updatedLogin">The updated login object containing user details.</param>
+        /// <returns>Returns the edited login object, or NotFound if the login is not found.</returns>
+        [HttpPut("EditLogin/{id}")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(typeof(Login), 200)]
+        [ProducesResponseType(404)]
+        [ProducesResponseType(500)]
+        public async Task<ActionResult<Login>> EditLogin(int id, Login updatedLogin)
+        {
+            try
+            {
+                var existingLogin = await _context.Login.FindAsync(id);
+                if (existingLogin == null)
+                {
+                    return NotFound();
+                }
+
+                existingLogin.User = updatedLogin.User;
+                existingLogin.Password = updatedLogin.Password; // Ensure password handling is secure
+                existingLogin.IsAdmin = updatedLogin.IsAdmin;
+
+                await _context.SaveChangesAsync();
+
+                return Ok(existingLogin);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Failed to edit login with ID: {id}");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        /// <summary>
+        /// Deletes an existing login entry from the database.
+        /// </summary>
+        /// <param name="id">The ID of the login to delete.</param>
+        /// <returns>Returns NoContent if the login is deleted successfully, or NotFound if the login is not found.</returns>
+        [HttpDelete("DeleteLogin/{id}")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(404)]
+        [ProducesResponseType(500)]
+        public async Task<IActionResult> DeleteLogin(int id)
+        {
+            try
+            {
+                var existingLogin = await _context.Login.FindAsync(id);
+                if (existingLogin == null)
+                {
+                    return NotFound();
+                }
+
+                _context.Login.Remove(existingLogin);
+                await _context.SaveChangesAsync();
+
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Failed to delete login with ID: {id}");
                 return StatusCode(500, "Internal server error");
             }
         }

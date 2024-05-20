@@ -156,5 +156,68 @@ namespace UTFClassAPI.Controllers
                 return StatusCode(500, "Internal server error");
             }
         }
+        
+        /// <summary>
+        /// Adds a new class to the database.
+        /// </summary>
+        /// <param name="newClass">The class object to add.</param>
+        /// <returns>Returns the added class.</returns>
+        [HttpPost("AddClass")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(typeof(Class), 201)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(500)]
+        public async Task<ActionResult<Class>> AddClass(Class newClass)
+        {
+            try
+            {
+                _context.Class.Add(newClass);
+                await _context.SaveChangesAsync();
+                return CreatedAtAction(nameof(Get), new { id = newClass.Id }, newClass);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to add class.");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        /// <summary>
+        /// Edits an existing class in the database.
+        /// </summary>
+        /// <param name="id">The ID of the class to edit.</param>
+        /// <param name="updatedClass">The updated class object.</param>
+        /// <returns>Returns the edited class.</returns>
+        [HttpPut("EditClass/{id}")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(typeof(Class), 200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(404)]
+        [ProducesResponseType(500)]
+        public async Task<ActionResult<Class>> EditClass(int id, Class updatedClass)
+        {
+            try
+            {
+                var existingClass = await _context.Class.FindAsync(id);
+                if (existingClass == null)
+                {
+                    return NotFound();
+                }
+
+                existingClass.Name = updatedClass.Name;
+                existingClass.Code = updatedClass.Code;
+                existingClass.TeacherId = updatedClass.TeacherId;
+                existingClass.Period = updatedClass.Period;
+
+                await _context.SaveChangesAsync();
+
+                return Ok(existingClass);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Failed to edit class with ID: {id}");
+                return StatusCode(500, "Internal server error");
+            }
+        }
     }
 }
