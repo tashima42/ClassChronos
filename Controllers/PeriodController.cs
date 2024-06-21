@@ -26,6 +26,7 @@ namespace UTFClassAPI.Controllers
         /// <summary>
 		/// Changes the period for the specified classrooms.
 		/// </summary>
+		/// <param name="classId">The ID of the class.</param>
 		/// <param name="combination">The new period and classroom string ex: 2T4(P005).</param>
 		/// <returns>Returns Ok if the period is successfully changed, or a list of duplicate combinations if any.</returns>
 		[HttpPost("ChangePeriod/{classId}/{combination}")]
@@ -37,7 +38,7 @@ namespace UTFClassAPI.Controllers
 			try
 			{
 				var @class = await _context.Class.FindAsync(classId);
-				
+        
 				if (@class == null)
 				{
 					return NotFound($"Class with ID {classId} not found.");
@@ -45,7 +46,7 @@ namespace UTFClassAPI.Controllers
 
 				var pairs = combination.Split('-').Select(pair => pair.Trim()).ToList();
 
-				// Check for duplicates ???
+				// Check for duplicates
 				var duplicatePairs = pairs.GroupBy(x => x)
 										.Where(g => g.Count() > 1)
 										.Select(y => y.Key)
@@ -56,9 +57,31 @@ namespace UTFClassAPI.Controllers
 					return Ok(duplicatePairs);
 				}
 
+				// Extract the authenticated user's ID from the JWT token
+				var userId = User.FindFirst("UserId")?.Value;
+				if (userId == null)
+				{
+					return Unauthorized("User ID not found in token.");
+				}
+
+				// Log the change
+				var log = new Log
+				{
+					DateTime = DateTime.UtcNow.ToString("o"),
+					PeriodOld = @class.Period,
+					PeriodNew = combination,
+					Description = "Troca de sala/horario",
+					LoginId = int.Parse(userId),
+					TeacherId = @class.TeacherId,
+					ClassId = classId
+				};
+				_context.Log.Add(log);
+
 				// Update period for the specified class
 				@class.Period = combination;
 				_context.Class.Update(@class);
+
+				// Save the changes
 				await _context.SaveChangesAsync();
 
 				return Ok();

@@ -24,6 +24,7 @@ namespace UTFClassAPI;
 		public string? Name { get; set; }
 		public string? Code { get; set; }
 		public string? Period {get; set; }
+		public string? Number {get; set; }
 		
 		public int TeacherId { get; set; }
 		[ForeignKey("TeacherId")]
@@ -72,6 +73,7 @@ namespace UTFClassAPI;
 		public string? DateTime { get; set; }
 		public string? PeriodOld { get; set; }
 		public string? PeriodNew { get; set; }
+		public string? Description {get; set; }
 		
 		public int LoginId { get; set; }
 		[ForeignKey("LoginId")]
