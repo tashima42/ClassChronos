@@ -23,6 +23,28 @@ namespace UTFClassAPI.Controllers
             _context = context;
         }
 
-		
-    }
+		/// <summary>
+		/// Retrieves all logs. Only accessible to users with the 'Admin' role.
+		/// </summary>
+		/// <returns>Returns a list of logs.</returns>
+		[HttpGet("GetLogs")]
+		[Authorize(Roles = "Admin")]
+		public async Task<ActionResult<IEnumerable<Log>>> GetLogs()
+		{
+			try
+			{
+				var logs = await _context.Log
+					.Include(l => l.Login)
+					.Include(l => l.Teacher)
+					.Include(l => l.Class)
+					.ToListAsync();
+
+				return Ok(logs);
+			}
+			catch (Exception ex)
+			{
+				return StatusCode(500, "Internal server error");
+			}
+		}
+	}
 }
