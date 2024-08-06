@@ -71,7 +71,7 @@ builder.Services.AddSwaggerGen(c =>
 
 // Add database service EFCore
 builder.Services.AddDbContext<DataContext>(options =>
-    options.UseSqlite("Data Source = file:.\\Data\\Database.sqlite3;Mode=ReadWrite;")
+    options.UseSqlite("Data Source = file:./Data/Database.sqlite3;Mode=ReadWrite;")
            .EnableSensitiveDataLogging());
 
 var app = builder.Build();
