@@ -40,8 +40,11 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 			ValidAudience = builder.Configuration["Jwt:Audience"],
 			ValidateLifetime = true,
 			ClockSkew = TimeSpan.Zero
-		};
+        };
+        options.Authority = "https://utf-api.tashima.space";
+        options.RequireHttpsMetadata = false;
     });
+
 
 builder.Services.AddSwaggerGen(c =>
 {
