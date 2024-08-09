@@ -26,6 +26,13 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 });
 builder.Services.AddEndpointsApiExplorer();
 
+// Get the jwt secret from the environment variable
+var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET");
+if (string.IsNullOrEmpty(jwtSecret))
+{
+    throw new Exception("JWT_SECRET environment variable is not set");
+}
+
 // Add JWT Service
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -33,7 +40,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         options.TokenValidationParameters = new TokenValidationParameters
 		{
 			ValidateIssuerSigningKey = true,
-			IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(new Crypto().GetSecretKeyAsString())),
+			IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret)),
 			ValidateIssuer = false,
 			ValidateAudience = false,
 			ValidIssuer = builder.Configuration["Jwt:Issuer"],
