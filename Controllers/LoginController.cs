@@ -22,7 +22,6 @@ namespace UTFClassAPI.Controllers
     {
         private readonly ILogger<LoginController> _logger;
         private readonly DataContext _context;
-        private readonly Crypto _crypto;
         
         private const int maxAttempts = 3;
 		private const int CooldownSeconds = 60;
@@ -32,7 +31,6 @@ namespace UTFClassAPI.Controllers
         {
             _logger = logger;
             _context = context;
-            _crypto = new Crypto();
 
         }
 
@@ -190,7 +188,14 @@ namespace UTFClassAPI.Controllers
         private string GenerateJwtToken(Login user)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(_crypto.GetSecretKeyAsString());
+            // Get the jwt secret from the environment variable
+            var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET");
+            if (string.IsNullOrEmpty(jwtSecret))
+            {
+                throw new Exception("JWT_SECRET environment variable is not set");
+            }
+
+            var key = Encoding.ASCII.GetBytes(jwtSecret);
 
             // Include user ID as a claim
             var claims = new List<Claim>
