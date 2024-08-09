@@ -10,14 +10,6 @@ using UTFClassAPI;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-builder.Services.AddControllers().AddJsonOptions(options =>
-{
-    options.JsonSerializerOptions.WriteIndented = true;
-    options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
-});
-builder.Services.AddEndpointsApiExplorer();
-
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(builder =>
@@ -27,6 +19,14 @@ builder.Services.AddCors(options =>
                .AllowAnyHeader();
     });
 });
+
+// Add services to the container.
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.WriteIndented = true;
+    options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+});
+builder.Services.AddEndpointsApiExplorer();
 
 // Add JWT Service
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -122,6 +122,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseAuthentication(); // Add authentication middleware
 app.UseAuthorization();
+app.UseCors("AllowAll");
 
 app.MapControllers();
 
