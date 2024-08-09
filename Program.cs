@@ -5,15 +5,13 @@ using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using System.Text.Json.Serialization;
 using UTFClassAPI;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddCors(options =>
 {
-    options.AddDefaultPolicy(builder =>
-    {
+    options.AddPolicy("AllowAll", builder => {
         builder.AllowAnyOrigin()
                .AllowAnyMethod()
                .AllowAnyHeader();
@@ -86,38 +84,34 @@ builder.Services.AddDbContext<DataContext>(options =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.RoutePrefix = string.Empty;
-        c.SwaggerEndpoint("/swagger/v2/swagger.json", "UTF Class API");
-        
-        //Javascript for JWT integration
-        c.InjectJavascript(@"
-			window.onload = function() {
-			const ui = SwaggerUIBundle({
-			url: 'v2/swagger.json',
-			dom_id: '#swagger-ui',
-			presets: [
-				SwaggerUIBundle.presets.apis,
-				SwaggerUIStandalonePreset
-			],
-			layout: 'BaseLayout',
-			deepLinking: true,
-			showExtensions: true,
-			showCommonExtensions: true
-			});
-			window.ui = ui;
-			};
-		");
-        
-        c.OAuthClientId("swagger-ui");
-        c.OAuthAppName("Swagger UI");
-    });
-}
+    c.RoutePrefix = string.Empty;
+    c.SwaggerEndpoint("/swagger/v2/swagger.json", "UTF Class API");
+    
+    //Javascript for JWT integration
+    c.InjectJavascript(@"
+        window.onload = function() {
+        const ui = SwaggerUIBundle({
+        url: 'v2/swagger.json',
+        dom_id: '#swagger-ui',
+        presets: [
+            SwaggerUIBundle.presets.apis,
+            SwaggerUIStandalonePreset
+        ],
+        layout: 'BaseLayout',
+        deepLinking: true,
+        showExtensions: true,
+        showCommonExtensions: true
+        });
+        window.ui = ui;
+        };
+    ");
+    
+    c.OAuthClientId("swagger-ui");
+    c.OAuthAppName("Swagger UI");
+});
 
 app.UseHttpsRedirection();
 app.UseAuthentication(); // Add authentication middleware
