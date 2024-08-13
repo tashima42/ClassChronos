@@ -122,6 +122,7 @@ app.UseSwaggerUI(c =>
     c.OAuthAppName("Swagger UI");
 });
 
+
 app.UseHttpsRedirection();
 app.UseAuthentication(); // Add authentication middleware
 app.UseAuthorization();
@@ -130,4 +131,3 @@ app.UseCors("AllowAll");
 app.MapControllers();
 
 app.Run();
-

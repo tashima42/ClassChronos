@@ -65,14 +65,6 @@ namespace UTFClassAPI.Controllers
             {
                 // User is authenticated, generate JWT token
                 var token = GenerateJwtToken(user);
-                // set the token as an http-only cookie
-                Response.Cookies.Append("jwt", token, new CookieOptions
-                {
-                    HttpOnly = true,
-                    SameSite = SameSiteMode.None,
-                    Secure = true,
-                    MaxAge = TimeSpan.FromDays(7)
-                });
                 return Ok(token);
             }
             else
