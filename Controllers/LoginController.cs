@@ -118,7 +118,6 @@ namespace UTFClassAPI.Controllers
         /// <param name="updatedLogin">The updated login object containing user details.</param>
         /// <returns>Returns the edited login object, or NotFound if the login is not found.</returns>
         [HttpPut("EditLogin/{id}")]
-        [Authorize(Roles = "Admin")]
         [ProducesResponseType(typeof(Login), 200)]
         [ProducesResponseType(404)]
         [ProducesResponseType(500)]
