@@ -29,16 +29,16 @@ namespace UTFClassAPI.Controllers
         }
 
         /// <summary>
-        /// Retrieves all login entries from the database. Only accessible to users with the 'Admin' role.
+        /// Retrieves login from the database for the current logged in user.
         /// </summary>
-        [HttpGet("GetLogins")]
-        [Authorize(Roles = "Admin")]
+        [HttpGet("Me")]
         public async Task<ActionResult<IEnumerable<Login>>> Get()
         {
             try
             {
-                var logins = await _context.Login.ToListAsync();
-                return Ok(logins);
+                // use the current logged in user to get just his login details
+                var login = await _context.Login.FirstOrDefaultAsync(u => u.User == User.Identity.Name);
+                return Ok(login);
             }
             catch (Exception ex)
             {
